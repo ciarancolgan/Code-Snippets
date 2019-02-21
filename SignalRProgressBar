@@ -1,0 +1,33 @@
+// Show progress bar
+                var currentUserName = "DOMAIN\\XXX";
+                var jobName = "xxxx"; 
+
+                PushMessageEmitter.ProgressBarNotifyStart(currentUserName, jobName);
+
+                // Submit webservice call and spawn task to blindly update progress bar simultaneously
+                CancellationTokenSource cts = new CancellationTokenSource();
+
+                var result2 = await new [] {
+                        Task.Run<bool>(async () =>
+                        {
+                            for (int i = 1; i < 10; i++)
+                            {
+                                await Task.Delay(TimeSpan.FromSeconds(1), cts.Token);
+                                PushMessageEmitter.ProgressBarNotifyProgress(currentUserName, jobName, i * 10);
+                            }
+                            
+                            return false;
+                        }, cts.Token),
+                        Task.Run<bool>(async () =>
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(8), cts.Token);
+
+                            return true;
+                        }, cts.Token)
+                    }
+                    .Select(t => t.ToObservable())
+                    .Merge()
+                    .FirstOrDefaultAsync(success => success);
+
+                PushMessageEmitter.ProgressBarNotifyProgress(currentUserName, jobName, 100);
+                PushMessageEmitter.ProgressBarNotifyEnd(currentUserName, jobName);
