@@ -31,3 +31,5 @@
 
                 PushMessageEmitter.ProgressBarNotifyProgress(currentUserName, jobName, 100);
                 PushMessageEmitter.ProgressBarNotifyEnd(currentUserName, jobName);
+
+                cts.Cancel();
